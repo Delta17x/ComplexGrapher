@@ -171,14 +171,20 @@ namespace cpx {
 			auto _StretchRemove = (active_window->x_size() / active_window->y_size());
 			if (_Multi) {
 				size_t step_size = (size_t)(_AccN / max_threads);
+				if (step_size % 2 == 1)
+					step_size += 1;
+
 				std::thread* threads = new std::thread[max_threads];
 
 				auto _F = [&](size_t th_num) { /* compute function for threads 0 - (max_threads - 1) */
-					for (size_t i = th_num * step_size + th_num * step_size % 2 == 0 ? 1 : 0; i < (th_num + 1) * step_size; i += 2) {
+					double _Ret = 0;
+					for (size_t i = th_num * step_size; i < (th_num + 1) * step_size; i += 2) {
 						_ArrN[i] = (float)_T;
 						_ArrN[i + 1] = (float)_FunctionN(_T) * _StretchRemove;
-						_T += _Inc;
-					}	};
+						_Ret += _Inc;
+					}	
+					return _Ret;
+				};
 
 				for (size_t i = 0; i < max_threads - 1; i++) {
 					threads[i] = std::thread(_F, i);
@@ -193,6 +199,7 @@ namespace cpx {
 
 				for (size_t i = 0; i < max_threads; i++) {
 					threads[i].join();
+					threads[i].
 				}
 
 				delete[] threads;
