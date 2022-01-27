@@ -80,7 +80,7 @@ namespace cpx {
 			return -1;
 		}
 		glfwMakeContextCurrent(m_glwindow);
-		glfwSwapInterval(1);
+		glfwSwapInterval(2);
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			throw new exception("GLAD initialization failed.");
 			return -1;

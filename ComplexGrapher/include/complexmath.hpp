@@ -2,7 +2,6 @@
 //
 #include "complexrenderer.hpp"
 #include <math.h> 
-#include <iostream>
 namespace cpx {
 
 	struct constants {
@@ -118,8 +117,8 @@ namespace cpx {
 			else
 				temp = 4 + 400.0 / active_window->sqrt_zoom();
 			double _T = -temp;
-			double _Inc = 4 * temp / _AccN;
-			auto _StretchRemove = (active_window->x_size() / active_window->y_size());
+			const double _Inc = 4 * temp / _AccN;
+			const auto _StretchRemove = (float)(active_window->x_size()) / (float)(active_window->y_size());
 			if (_Multi) {
 				size_t step_size = (size_t)(_AccN / max_threads);
 				std::thread* threads = new std::thread[max_threads];
@@ -137,7 +136,7 @@ namespace cpx {
 				}
 
 				threads[max_threads - 1] = std::thread([&](size_t th_num) { /* final iteration, seperated from others so that we dont calculate more that _AccN */
-					for (size_t i = step_size * (max_threads - 1) - 1; i < _AccN; i += 2) {
+					for (size_t i = step_size * (max_threads - 1); i < _AccN - 1; i += 2) {
 						complex _Computed = _FunctionN(_T);
 						_ArrN[i] = (float)_Computed.re;
 						_ArrN[i + 1] = (float)_Computed.im * _StretchRemove;
@@ -167,8 +166,8 @@ namespace cpx {
 			else
 				temp = 4 + 400.0 / active_window->sqrt_zoom();
 			double _T = -temp;
-			double _Inc = 4 * temp / _AccN;
-			auto _StretchRemove = (active_window->x_size() / active_window->y_size());
+			const double _Inc = 4 * temp / _AccN;
+			const auto _StretchRemove = (float)(active_window->x_size()) / (float)(active_window->y_size());
 			if (_Multi) {
 				size_t step_size = (size_t)(_AccN / max_threads);
 				if (step_size % 2 == 1)
@@ -177,29 +176,28 @@ namespace cpx {
 				std::thread* threads = new std::thread[max_threads];
 
 				auto _F = [&](size_t th_num) { /* compute function for threads 0 - (max_threads - 1) */
-					double _Ret = 0;
 					for (size_t i = th_num * step_size; i < (th_num + 1) * step_size; i += 2) {
 						_ArrN[i] = (float)_T;
 						_ArrN[i + 1] = (float)_FunctionN(_T) * _StretchRemove;
-						_Ret += _Inc;
+						_T += _Inc;
 					}	
-					return _Ret;
 				};
 
 				for (size_t i = 0; i < max_threads - 1; i++) {
 					threads[i] = std::thread(_F, i);
 				}
-
-				threads[max_threads - 1] = std::thread([&]() { /* final iteration, seperated from others so that we dont calculate more that _AccN */
-					for (size_t i = step_size * (max_threads - 1); i < _AccN - 1; i += 2) {
+				
+				
+				threads[max_threads - 1] = std::thread([&]() { // final iteration, seperated from others so that we dont calculate more that _AccN 
+					for (size_t i = step_size * (max_threads - 1); i < _AccN; i += 2) {
 						_ArrN[i] = (float)_T;
 						_ArrN[i + 1] = (float)_FunctionN(_T) * _StretchRemove;
 						_T += _Inc;
 					}	});
+					
 
 				for (size_t i = 0; i < max_threads; i++) {
 					threads[i].join();
-					threads[i].
 				}
 
 				delete[] threads;
